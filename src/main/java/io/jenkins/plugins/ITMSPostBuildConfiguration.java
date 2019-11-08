@@ -49,7 +49,7 @@ public class ITMSPostBuildConfiguration extends Notifier {
             listener.getLogger().println("Starting Post Build Action");
 
             File folder = new File(build.getWorkspace() + reportFolder);
-            listener.getLogger().println("Report folder" + folder.getPath());
+            listener.getLogger().println("Report folder: " + folder.getPath());
             File[] listOfFiles = folder.listFiles();
             if (listOfFiles != null) {
                 for (File file : listOfFiles) {
@@ -127,7 +127,7 @@ public class ITMSPostBuildConfiguration extends Notifier {
         String responseStr = "";
         if (content.length() > 0) {
             HttpResponse response = sendXMLContent(content, build);
-            responseStr = "Response: " + response.getStatusLine().getReasonPhrase();
+            responseStr = "Cucumber plugin response: " + response.getStatusLine().getReasonPhrase();
         } else {
             responseStr = "Report file(s) is empty!";
         }

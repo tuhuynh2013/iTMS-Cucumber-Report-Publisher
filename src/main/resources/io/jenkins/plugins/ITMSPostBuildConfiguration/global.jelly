@@ -4,7 +4,7 @@
     <!--
       This Jelly script is used to produce the global configuration option.
     -->
-    <f:section title="iTMS Server Configuration">
+    <f:section title="iTMS Cucumber Server Configuration">
         <f:entry title="iTMS server" field="itmsServer">
             <f:textbox/>
         </f:entry>
