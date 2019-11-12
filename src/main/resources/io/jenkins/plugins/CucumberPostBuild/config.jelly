@@ -23,4 +23,5 @@
     <f:entry title="Cycle name" field="cycleName">
         <f:textbox />
     </f:entry>
+
 </j:jelly>

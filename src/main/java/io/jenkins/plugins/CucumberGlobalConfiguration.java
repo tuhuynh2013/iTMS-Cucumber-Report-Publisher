@@ -1,5 +1,6 @@
 package io.jenkins.plugins;
 
+import hidden.jth.org.apache.http.HttpResponse;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
@@ -12,15 +13,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
-import hidden.jth.org.apache.http.HttpResponse;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
+import static io.jenkins.plugins.ITMSConsts.POST_BUILD_NAME;
 
 @Extension
-public final class ITMSGlobalConfiguration extends BuildStepDescriptor<Publisher> {
+public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publisher> {
 
     private String itmsServer;
     private String username;
@@ -30,8 +31,8 @@ public final class ITMSGlobalConfiguration extends BuildStepDescriptor<Publisher
      * In order to load the persisted global configuration, you have to call
      * load() in the constructor.
      */
-    public ITMSGlobalConfiguration() {
-        super(ITMSPostBuildConfiguration.class);
+    public CucumberGlobalConfiguration() {
+        super(CucumberPostBuild.class);
         load();
     }
 
@@ -58,7 +59,7 @@ public final class ITMSGlobalConfiguration extends BuildStepDescriptor<Publisher
     @Nonnull
     @Override
     public String getDisplayName() {
-        return ITMSConsts.POST_BUILD_NAME;
+        return POST_BUILD_NAME;
     }
 
     @POST
@@ -119,5 +120,6 @@ public final class ITMSGlobalConfiguration extends BuildStepDescriptor<Publisher
     public AuthenticationInfo getAuthenticationInfo() {
         return authenticationInfo;
     }
+
 
 }

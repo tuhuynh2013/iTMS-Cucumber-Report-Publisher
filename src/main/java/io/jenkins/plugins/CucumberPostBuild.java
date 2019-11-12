@@ -1,17 +1,19 @@
 package io.jenkins.plugins;
 
+import hidden.jth.org.apache.http.HttpResponse;
 import hudson.Launcher;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
-
 import io.jenkins.rest.RequestAPI;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import hidden.jth.org.apache.http.HttpResponse;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,8 +21,7 @@ import java.util.Objects;
 
 import static io.jenkins.plugins.ITMSConsts.SERVICE_NAME;
 
-
-public class ITMSPostBuildConfiguration extends Notifier {
+public class CucumberPostBuild extends Notifier {
 
     private final String itmsAddress;
     private final String reportFolder;
@@ -33,8 +34,8 @@ public class ITMSPostBuildConfiguration extends Notifier {
     private final String XML_FORMAT = "Cucumber JUnit";
 
     @DataBoundConstructor
-    public ITMSPostBuildConfiguration(final String itmsAddress, final String reportFolder,
-                                      final String reportFormat, final String ticketTitle, final String cycleName) {
+    public CucumberPostBuild(final String itmsAddress, final String reportFolder,
+                             final String reportFormat, final String ticketTitle, final String cycleName) {
         this.itmsAddress = itmsAddress;
         this.reportFolder = reportFolder;
         this.reportFormat = reportFormat;
@@ -85,8 +86,8 @@ public class ITMSPostBuildConfiguration extends Notifier {
     }
 
     @Override
-    public ITMSGlobalConfiguration getDescriptor() {
-        return (ITMSGlobalConfiguration) super.getDescriptor();
+    public CucumberGlobalConfiguration getDescriptor() {
+        return (CucumberGlobalConfiguration) super.getDescriptor();
     }
 
     private HttpResponse sendXMLContent(String content, AbstractBuild build) throws IOException {
