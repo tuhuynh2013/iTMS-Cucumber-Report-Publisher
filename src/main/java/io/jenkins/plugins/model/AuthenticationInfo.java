@@ -1,4 +1,4 @@
-package io.jenkins.plugins;
+package io.jenkins.plugins.model;
 
 public class AuthenticationInfo {
     private String username;

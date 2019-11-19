@@ -1,13 +1,20 @@
 package io.jenkins.plugins;
 
-import hidden.jth.org.apache.http.HttpResponse;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import hidden.jth.org.apache.http.HttpStatus;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import io.jenkins.rest.RequestAPI;
+import io.jenkins.plugins.model.AuthenticationInfo;
+import io.jenkins.plugins.model.Cycle;
+import io.jenkins.plugins.rest.RequestAPI;
+import io.jenkins.plugins.rest.StandardResponse;
+import io.jenkins.plugins.util.URLValidator;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.stapler.QueryParameter;
@@ -15,10 +22,9 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.net.HttpURLConnection;
 
-import static io.jenkins.plugins.ITMSConsts.POST_BUILD_NAME;
+import static io.jenkins.plugins.model.ITMSConsts.POST_BUILD_NAME;
+
 
 @Extension
 public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publisher> {
@@ -27,6 +33,7 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
     private String username;
     private String token;
     private AuthenticationInfo authenticationInfo = new AuthenticationInfo();
+
     /**
      * In order to load the persisted global configuration, you have to call
      * load() in the constructor.
@@ -64,7 +71,7 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
 
     @POST
     public FormValidation doTestConnection(@QueryParameter String itmsServer, @QueryParameter String username,
-                                           @QueryParameter String token) throws IOException {
+                                           @QueryParameter String token) {
 
         if (StringUtils.isBlank(itmsServer)) {
             return FormValidation.error("Please enter the iTMS server address");
@@ -84,14 +91,48 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
         postData.put("token", token);
 
         RequestAPI request = new RequestAPI(itmsServer);
-        HttpResponse response = request.createPOSTRequest(postData);
+        StandardResponse response = request.createPOSTRequest(postData);
 
-        if (response.getStatusLine().getStatusCode() != HttpURLConnection.HTTP_OK) {
-            return FormValidation.error(response.getStatusLine().getStatusCode() + ": " +
-                    response.getStatusLine().getReasonPhrase());
+        if (response.getCode() != HttpStatus.SC_OK) {
+            return FormValidation.error(response.toString());
         }
 
         return FormValidation.ok("Connection to iTMS has been validated");
+    }
+
+    @POST
+    public FormValidation doTestConfiguration(@QueryParameter String itmsAddress, @QueryParameter String reportFolder,
+                                              @QueryParameter String projectName, @QueryParameter String ticketKey, @QueryParameter String cycleName) {
+
+        if (StringUtils.isBlank(itmsAddress)) {
+            return FormValidation.error("Please enter the iTMS server address");
+        }
+
+        if (!URLValidator.isValidUrl(itmsAddress)) {
+            return FormValidation.error("This value is not a valid url!");
+        }
+
+        if (StringUtils.isBlank(reportFolder)) {
+            return FormValidation.error("Please enter the report folder!");
+        }
+
+        if (!reportFolder.startsWith("/")) {
+            return FormValidation.error("Please begin with forward slash! Ex: /target/report ");
+        }
+
+        if (StringUtils.isBlank(projectName)) {
+            return FormValidation.error("Please enter the Project name!");
+        }
+
+        if (StringUtils.isBlank(ticketKey)) {
+            return FormValidation.error("Please enter the ticket key!");
+        }
+
+        if (StringUtils.isBlank(cycleName)) {
+            return FormValidation.error("Please enter the cycle name!");
+        }
+
+        return FormValidation.ok("Configuration is valid!");
     }
 
     public ListBoxModel doFillReportFormatItems(@QueryParameter String reportFormat) {
@@ -101,10 +142,26 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
         return m;
     }
 
-    /**
-     * Global configuration information variables. If you don't want fields
-     * to be persisted, use <tt>transient</tt>.
-     */
+//    public ListBoxModel doFillCycleNameItems(@QueryParameter String itmsAddress, @QueryParameter String projectName) {
+//        ListBoxModel listBoxModel = new ListBoxModel();
+//
+//        RequestAPI requestAPI = new RequestAPI(itmsAddress);
+//        StandardResponse response = requestAPI.getCycleName(projectName);
+//        if (response.getCode() == HttpStatus.SC_OK) {
+//            Cycle cycle = readJsonCycle(response);
+//            cycle.getTestCycle().forEach(testCycle -> listBoxModel.add(testCycle.getName()));
+//        }
+//
+//        return listBoxModel;
+//    }
+
+//    private Cycle readJsonCycle(StandardResponse response) {
+//        Gson gson = new GsonBuilder()
+//                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+//                .create();
+//        return gson.fromJson(response.getMessage(), Cycle.class);
+//    }
+
     public String getItmsServer() {
         return itmsServer;
     }

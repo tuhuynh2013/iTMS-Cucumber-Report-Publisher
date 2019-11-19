@@ -1,13 +1,14 @@
 package io.jenkins.plugins;
 
-import hidden.jth.org.apache.http.HttpResponse;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Cause;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
-import io.jenkins.rest.RequestAPI;
+import io.jenkins.plugins.model.AuthenticationInfo;
+import io.jenkins.plugins.rest.RequestAPI;
+import io.jenkins.plugins.rest.StandardResponse;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -19,27 +20,27 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-import static io.jenkins.plugins.ITMSConsts.SERVICE_NAME;
+import static io.jenkins.plugins.model.ITMSConsts.*;
+
 
 public class CucumberPostBuild extends Notifier {
 
     private final String itmsAddress;
     private final String reportFolder;
     private final String reportFormat;
-    private final String ticketTitle;
+    private final String projectName;
+    private final String ticketKey;
     private final String cycleName;
-
-
-    private final String JSON_FORMAT = "Cucumber Json";
-    private final String XML_FORMAT = "Cucumber JUnit";
 
     @DataBoundConstructor
     public CucumberPostBuild(final String itmsAddress, final String reportFolder,
-                             final String reportFormat, final String ticketTitle, final String cycleName) {
-        this.itmsAddress = itmsAddress;
-        this.reportFolder = reportFolder;
-        this.reportFormat = reportFormat;
-        this.ticketTitle = ticketTitle;
+                             final String reportFormat, final String projectName,
+                             final String ticketKey, final String cycleName) {
+        this.itmsAddress = itmsAddress.trim();
+        this.reportFolder = reportFolder.trim();
+        this.reportFormat = reportFormat.trim();
+        this.projectName = projectName.trim();
+        this.ticketKey = ticketKey.trim();
         this.cycleName = cycleName;
     }
 
@@ -54,15 +55,17 @@ public class CucumberPostBuild extends Notifier {
             File[] listOfFiles = folder.listFiles();
             if (listOfFiles != null) {
                 for (File file : listOfFiles) {
-                    String content = "";
+                    String content;
                     if (reportFormat.equals(JSON_FORMAT) && file.getName().toLowerCase().endsWith(".json")) {
                         counter++;
+                        listener.getLogger().println("Read report file: " + file.getName());
                         content = readFileContent(file);
-                        listener.getLogger().println(sendReportContent(content, build));
+                        listener.getLogger().println(sendReportContent(file.getName(), content, build));
                     } else if (reportFormat.equals(XML_FORMAT) && file.getName().toLowerCase().endsWith(".xml")) {
                         counter++;
+                        listener.getLogger().println("Read report file: " + file.getName());
                         content = readFileContent(file);
-                        listener.getLogger().println(sendReportContent(content, build));
+                        listener.getLogger().println(sendReportContent(file.getName(), content, build));
                     }
                 }
 
@@ -90,7 +93,8 @@ public class CucumberPostBuild extends Notifier {
         return (CucumberGlobalConfiguration) super.getDescriptor();
     }
 
-    private HttpResponse sendXMLContent(String content, AbstractBuild build) throws IOException {
+
+    private StandardResponse sendXMLContent(String content, AbstractBuild build) {
         AuthenticationInfo authenticationInfo = getDescriptor().getAuthenticationInfo();
 
         Cause cause = (Cause) build.getCauses().get(0);
@@ -108,11 +112,12 @@ public class CucumberPostBuild extends Notifier {
         data.put("username", authenticationInfo.getUsername());
         data.put("service_name", SERVICE_NAME);
         data.put("token", authenticationInfo.getToken());
-        data.put("project_name", build.getProject().getName());
+        data.put("project_name", projectName);
         data.put("jenkins_auto_executions_attributes", jenkinsAttributes);
-        data.put("ticket_title", ticketTitle);
+        data.put("ticket_key", ticketKey);
         data.put("cycle_name", cycleName);
-        data.put("json_result", content);
+        data.put("is_json", reportFormat.equals(JSON_FORMAT)? Boolean.TRUE : Boolean.FALSE);
+        data.put("report_content", content);
         RequestAPI requestAPI = new RequestAPI(itmsAddress);
         return requestAPI.createPOSTRequest(data);
     }
@@ -124,15 +129,12 @@ public class CucumberPostBuild extends Notifier {
         return content.toString();
     }
 
-    private String sendReportContent (String content, AbstractBuild build) throws IOException {
-        String responseStr = "";
+    private String sendReportContent(String fileName, String content, AbstractBuild build) {
         if (content.length() > 0) {
-            HttpResponse response = sendXMLContent(content, build);
-            responseStr = "Cucumber plugin response: " + response.getStatusLine().getReasonPhrase();
-        } else {
-            responseStr = "Report file(s) is empty!";
+            StandardResponse response = sendXMLContent(content, build);
+            return "JUnit Cucumber response: " + response.toString();
         }
-        return responseStr;
+        return fileName + " Report file(s) is empty!";
     }
 
     public String getItmsAddress() {
@@ -147,12 +149,16 @@ public class CucumberPostBuild extends Notifier {
         return reportFormat;
     }
 
-    public String getTicketTitle() {
-        return ticketTitle;
+    public String getTicketKey() {
+        return ticketKey;
     }
 
     public String getCycleName() {
         return cycleName;
+    }
+
+    public String getProjectName() {
+        return projectName;
     }
 
 }
