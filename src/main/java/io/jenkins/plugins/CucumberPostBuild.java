@@ -134,7 +134,7 @@ public class CucumberPostBuild extends Notifier {
             StandardResponse response = sendXMLContent(content, build);
             return "JUnit Cucumber response: " + response.toString();
         }
-        return fileName + " Report file(s) is empty!";
+        return fileName + " is empty!";
     }
 
     public String getItmsAddress() {
