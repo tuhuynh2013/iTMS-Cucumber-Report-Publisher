@@ -102,7 +102,7 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
 
     @POST
     public FormValidation doTestConfiguration(@QueryParameter String itmsAddress, @QueryParameter String reportFolder,
-                                              @QueryParameter String projectName, @QueryParameter String ticketKey, @QueryParameter String cycleName) {
+                                              @QueryParameter String jiraProjectKey, @QueryParameter String jiraTicketKey, @QueryParameter String itmsCycleName) {
 
         if (StringUtils.isBlank(itmsAddress)) {
             return FormValidation.error("Please enter the iTMS server address");
@@ -120,16 +120,16 @@ public final class CucumberGlobalConfiguration extends BuildStepDescriptor<Publi
             return FormValidation.error("Please begin with forward slash! Ex: /target/report ");
         }
 
-        if (StringUtils.isBlank(projectName)) {
-            return FormValidation.error("Please enter the Project name!");
+        if (StringUtils.isBlank(jiraProjectKey)) {
+            return FormValidation.error("Please enter the Jira project name!");
         }
 
-        if (StringUtils.isBlank(ticketKey)) {
-            return FormValidation.error("Please enter the ticket key!");
+        if (StringUtils.isBlank(jiraTicketKey)) {
+            return FormValidation.error("Please enter the Jira ticket key!");
         }
 
-        if (StringUtils.isBlank(cycleName)) {
-            return FormValidation.error("Please enter the cycle name!");
+        if (StringUtils.isBlank(itmsCycleName)) {
+            return FormValidation.error("Please enter the iTMS cycle name!");
         }
 
         return FormValidation.ok("Configuration is valid!");

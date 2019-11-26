@@ -13,22 +13,22 @@
         <f:select />
     </f:entry>
 
-    <f:entry title="Project name" field="projectName">
+    <f:entry title="Jira project name" field="jiraProjectKey">
         <f:textbox />
     </f:entry>
 
-    <f:entry title="Ticket key" field="ticketKey">
+    <f:entry title="Jira ticket key" field="jiraTicketKey">
         <f:textbox />
     </f:entry>
 
-    <f:entry title="Cycle name" field="cycleName">
+    <f:entry title="iTMS cycle name" field="itmsCycleName">
         <f:textbox />
     </f:entry>
 
     <f:entry>
         <f:validateButton title="Test Configuration&#160;"
                           progress="Please wait .. We are validating the configuration"
-                          method="testConfiguration" with="itmsAddress,reportFolder,projectName,ticketKey,cycleName"/>
+                          method="testConfiguration" with="itmsAddress,reportFolder,jiraProjectKey,jiraTicketKey,itmsCycleName"/>
     </f:entry>
 
 </j:jelly>

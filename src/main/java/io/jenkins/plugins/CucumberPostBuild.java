@@ -28,20 +28,20 @@ public class CucumberPostBuild extends Notifier {
     private final String itmsAddress;
     private final String reportFolder;
     private final String reportFormat;
-    private final String projectName;
-    private final String ticketKey;
-    private final String cycleName;
+    private final String jiraProjectKey;
+    private final String jiraTicketKey;
+    private final String itmsCycleName;
 
     @DataBoundConstructor
     public CucumberPostBuild(final String itmsAddress, final String reportFolder,
-                             final String reportFormat, final String projectName,
-                             final String ticketKey, final String cycleName) {
+                             final String reportFormat, final String jiraProjectKey,
+                             final String jiraTicketKey, final String itmsCycleName) {
         this.itmsAddress = itmsAddress.trim();
         this.reportFolder = reportFolder.trim();
         this.reportFormat = reportFormat.trim();
-        this.projectName = projectName.trim();
-        this.ticketKey = ticketKey.trim();
-        this.cycleName = cycleName;
+        this.jiraProjectKey = jiraProjectKey.trim();
+        this.jiraTicketKey = jiraTicketKey.trim();
+        this.itmsCycleName = itmsCycleName.trim();
     }
 
     @Override
@@ -97,14 +97,14 @@ public class CucumberPostBuild extends Notifier {
     private StandardResponse sendXMLContent(String content, AbstractBuild build) {
         AuthenticationInfo authenticationInfo = getDescriptor().getAuthenticationInfo();
 
-        Cause cause = (Cause) build.getCauses().get(0);
-        String userCause = ((Cause.UserIdCause) cause).getUserId();
+//        Cause cause = (Cause) build.getCauses().get(0);
+//        String userCause = ((Cause.UserIdCause) cause).getUserId();
 
         JSONArray jenkinsAttributes = new JSONArray();
         JSONObject jenkinsAttr = new JSONObject();
         jenkinsAttr.put("build_number", build.number);
         jenkinsAttr.put("build_status", Objects.requireNonNull(build.getResult()).toString().toLowerCase());
-        jenkinsAttr.put("user", userCause);
+        jenkinsAttr.put("user", authenticationInfo.getUsername());
         jenkinsAttr.put("report_type", reportFormat);
         jenkinsAttributes.add(jenkinsAttr);
 
@@ -112,10 +112,10 @@ public class CucumberPostBuild extends Notifier {
         data.put("username", authenticationInfo.getUsername());
         data.put("service_name", SERVICE_NAME);
         data.put("token", authenticationInfo.getToken());
-        data.put("project_name", projectName);
+        data.put("project_name", jiraProjectKey);
         data.put("jenkins_auto_executions_attributes", jenkinsAttributes);
-        data.put("ticket_key", ticketKey);
-        data.put("cycle_name", cycleName);
+        data.put("ticket_key", jiraTicketKey);
+        data.put("cycle_name", itmsCycleName);
         data.put("is_json", reportFormat.equals(JSON_FORMAT)? Boolean.TRUE : Boolean.FALSE);
         data.put("report_content", content);
         RequestAPI requestAPI = new RequestAPI(itmsAddress);
@@ -149,16 +149,16 @@ public class CucumberPostBuild extends Notifier {
         return reportFormat;
     }
 
-    public String getTicketKey() {
-        return ticketKey;
+    public String getJiraTicketKey() {
+        return jiraTicketKey;
     }
 
-    public String getCycleName() {
-        return cycleName;
+    public String getItmsCycleName() {
+        return itmsCycleName;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public String getJiraProjectKey() {
+        return jiraProjectKey;
     }
 
 }
